@@ -64,7 +64,7 @@ class Location(Attachment):
     :param str foursqure_venue_id: an optional Foursquare venue ID
     """
 
-    def __init__(self, lat, lng, name, foursqure_venue_id=None):
+    def __init__(self, lat=None, lng=None, name=None, foursqure_venue_id=None):
         super().__init__(type='location', lat=lat, lng=lng, name=name,
                          foursqure_venue_id=foursqure_venue_id)
 
