@@ -117,11 +117,12 @@ class Image(Attachment):
     :param str source_url: an optional, absolute URL for the image source
     :param str file_id: an optional file ID (used when viewing uploaded files
                         in the gallery)
+    :param str blur_hash: an optional blur hash for the image
     """
 
-    def __init__(self, url, source_url=None, file_id=None):
+    def __init__(self, url, source_url=None, file_id=None, blur_hash=None):
         super().__init__(type='image', url=url, source_url=source_url,
-                         file_id=file_id)
+                         file_id=file_id, blur_hash=blur_hash)
 
 
 # this is documented nowhere :(
