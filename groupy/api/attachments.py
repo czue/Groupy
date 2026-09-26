@@ -1,3 +1,5 @@
+import inspect
+
 from . import base
 from groupy import utils
 
@@ -40,13 +42,25 @@ class Attachment(base.Resource, metaclass=AttachmentMeta):
         :return: an attachment subclass object
         :rtype: `~groupy.api.attachments.Attachment`
         """
-        try:
-            return cls._types[type](**data)
-        except KeyError:
+        attachment_cls = cls._types.get(type)
+        if attachment_cls is None:
             return cls(type=type, **data)
-        except TypeError as e:
-            error = 'could not create {!r} attachment'.format(type)
-            raise TypeError('{}: {}'.format(error, e.args[0]))
+        try:
+            return attachment_cls(**data)
+        except TypeError:
+            pass
+
+        # the API may add fields we don't know about yet, so construct the
+        # subclass from the fields it accepts and keep the rest in data
+        params = inspect.signature(attachment_cls.__init__).parameters
+        known = {k: v for k, v in data.items() if k in params}
+        try:
+            attachment = attachment_cls(**known)
+        except TypeError:
+            return cls(type=type, **data)
+        extra = {k: v for k, v in data.items() if k not in params}
+        attachment.data.update(extra)
+        return attachment
 
     @classmethod
     def from_bulk_data(cls, attachments):
