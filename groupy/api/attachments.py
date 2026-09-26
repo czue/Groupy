@@ -1,3 +1,5 @@
+import inspect
+
 from . import base
 from groupy import utils
 
@@ -40,13 +42,25 @@ class Attachment(base.Resource, metaclass=AttachmentMeta):
         :return: an attachment subclass object
         :rtype: `~groupy.api.attachments.Attachment`
         """
-        try:
-            return cls._types[type](**data)
-        except KeyError:
+        attachment_cls = cls._types.get(type)
+        if attachment_cls is None:
             return cls(type=type, **data)
-        except TypeError as e:
-            error = 'could not create {!r} attachment'.format(type)
-            raise TypeError('{}: {}'.format(error, e.args[0]))
+        try:
+            return attachment_cls(**data)
+        except TypeError:
+            pass
+
+        # the API may add fields we don't know about yet, so construct the
+        # subclass from the fields it accepts and keep the rest in data
+        params = inspect.signature(attachment_cls.__init__).parameters
+        known = {k: v for k, v in data.items() if k in params}
+        try:
+            attachment = attachment_cls(**known)
+        except TypeError:
+            return cls(type=type, **data)
+        extra = {k: v for k, v in data.items() if k not in params}
+        attachment.data.update(extra)
+        return attachment
 
     @classmethod
     def from_bulk_data(cls, attachments):
@@ -102,12 +116,14 @@ class Mentions(Attachment):
     :type loci: :class:`list`
     :param user_ids: the user_ids of one or more users mentioned
     :type user_ids: :class:`list`
+    :param bool replay_allowed: an optional flag (undocumented in the API)
     """
 
-    def __init__(self, loci=None, user_ids=None):
+    def __init__(self, loci=None, user_ids=None, replay_allowed=None):
         loci = loci or []
         user_ids = user_ids or []
-        super().__init__(type='mentions', loci=loci, user_ids=user_ids)
+        super().__init__(type='mentions', loci=loci, user_ids=user_ids,
+                         replay_allowed=replay_allowed)
 
 
 class Image(Attachment):
