@@ -116,12 +116,14 @@ class Mentions(Attachment):
     :type loci: :class:`list`
     :param user_ids: the user_ids of one or more users mentioned
     :type user_ids: :class:`list`
+    :param bool replay_allowed: an optional flag (undocumented in the API)
     """
 
-    def __init__(self, loci=None, user_ids=None):
+    def __init__(self, loci=None, user_ids=None, replay_allowed=None):
         loci = loci or []
         user_ids = user_ids or []
-        super().__init__(type='mentions', loci=loci, user_ids=user_ids)
+        super().__init__(type='mentions', loci=loci, user_ids=user_ids,
+                         replay_allowed=replay_allowed)
 
 
 class Image(Attachment):
